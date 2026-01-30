@@ -11,9 +11,8 @@
 
 ### 📖 Overview
 
-This tool transforms how you stay updated with arXiv papers by combining automated crawling with AI-powered summarization. Built on GitHub Actions and Pages, it requires zero infrastructure and is completely free to use.
-
-https://github.com/user-attachments/assets/b25712a4-fb8d-484f-863d-e8da6922f9d7
+This tool transforms how you stay updated with arXiv papers by combining automated crawling with AI-powered summarization.  
+Built on GitHub Actions and Pages, it requires zero infrastructure and is completely free to use.  
 
 ### ✨ Key Features
 
