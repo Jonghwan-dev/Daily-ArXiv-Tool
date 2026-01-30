@@ -125,6 +125,9 @@ def process_single_item(chain, item: Dict, language: str) -> Dict:
     }
     
     try:
+# ==============================================    
+        time.sleep(5) # 5초 휴식 추가 -> RPM 제한
+# ==============================================
         response: Structure = chain.invoke({
             "language": language,
             "content": item['summary']
