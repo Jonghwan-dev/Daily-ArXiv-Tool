@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function fetchGitHubStats() {
   try {
-    const response = await fetch('https://api.github.com/repos/dw-dengwei/daily-arXiv-ai-enhanced');
+    const response = await fetch('https://api.github.com/repos/Jonghwan-dev/Daily-ArXiv-Tool');
     const data = await response.json();
     const starCount = data.stargazers_count;
     const forkCount = data.forks_count;
@@ -155,7 +155,7 @@ async function fetchAvailableDates() {
     const text = await response.text();
     const files = text.trim().split('\n');
 
-    const dateRegex = /(\d{4}-\d{2}-\d{2})_AI_enhanced_(English|Chinese)\.jsonl/;
+    const dateRegex = /(\d{4}-\d{2}-\d{2})_AI_enhanced_(English|Chinese|Korean)\.jsonl/;
     const dateLanguageMap = new Map(); // Store date -> available languages
     const dates = [];
     

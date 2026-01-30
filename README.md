@@ -26,7 +26,7 @@ This innovative tool transforms how you stay updated with arXiv papers by combin
 - Local preference storage for privacy
 - Flexible date range filtering
 
-👉 **[Try it now!](https://dw-dengwei.github.io/daily-arXiv-ai-enhanced/)** - No installation required
+👉 **[Try it now!](https://jonghwan-dev.github.io/Daily-ArXiv-Tool/)** - No installation required
 
 
 
