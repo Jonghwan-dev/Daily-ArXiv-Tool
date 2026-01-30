@@ -1,4 +1,4 @@
 exclude:
   - data/*.md
 include:
-  - data/*.jsonl
+  - data/*.json
