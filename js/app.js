@@ -1,30 +1,37 @@
+/**
+ * Daily arXiv AI Enhanced - Main Application
+ * Copyright 2026 Jonghwan Kim
+ */
+
+// change all annoation from chinese to english --2026.01.30 by JH
 let currentDate = '';
 let availableDates = [];
-let currentView = 'grid'; // 'grid' 或 'list'
+let currentView = 'grid'; // 'grid' or 'list'
 let currentCategory = 'all';
 let paperData = {};
 let flatpickrInstance = null;
 let isRangeMode = false;
-let activeKeywords = []; // 存储激活的关键词
-let userKeywords = []; // 存储用户的关键词
-let activeAuthors = []; // 存储激活的作者
-let userAuthors = []; // 存储用户的作者
-let currentPaperIndex = 0; // 当前查看的论文索引
-let currentFilteredPapers = []; // 当前过滤后的论文列表
-let textSearchQuery = ''; // 实时文本搜索查询
-let previousActiveKeywords = null; // 文本搜索激活时，暂存之前的关键词激活集合
-let previousActiveAuthors = null; // 文本搜索激活时，暂存之前的作者激活集合
+let activeKeywords = []; // Store active keywords H
+let userKeywords = []; // Store user's keywords 
+let activeAuthors = []; // Store active authors 
+let userAuthors = []; // Store user's authors 
+let currentPaperIndex = 0; // Current viewing paper index 
+let currentFilteredPapers = []; // Current filtered paper list
+let textSearchQuery = ''; // Real-time text search query
+let previousActiveKeywords = null; // Temporarily store previous keyword activation set when text search is active
+let previousActiveAuthors = null; // Temporarily store previous author activation set when text search is active
 
-// 加载用户的关键词设置
+
+// Load user's keyword settings
 function loadUserKeywords() {
   const savedKeywords = localStorage.getItem('preferredKeywords');
   if (savedKeywords) {
     try {
       userKeywords = JSON.parse(savedKeywords);
-      // 默认激活所有关键词
+      // Activate all keywords by default
       activeKeywords = [...userKeywords];
     } catch (error) {
-      console.error('解析关键词失败:', error);
+      console.error('Failed to parse keywords:', error);
       userKeywords = [];
       activeKeywords = [];
     }
@@ -37,16 +44,16 @@ function loadUserKeywords() {
   renderFilterTags();
 }
 
-// 加载用户的作者设置
+// Load user's author settings
 function loadUserAuthors() {
   const savedAuthors = localStorage.getItem('preferredAuthors');
   if (savedAuthors) {
     try {
       userAuthors = JSON.parse(savedAuthors);
-      // 默认激活所有作者
+      // Activate all authors by default
       activeAuthors = [...userAuthors];
     } catch (error) {
-      console.error('解析作者失败:', error);
+      console.error('Failed to parse authors:', error);
       userAuthors = [];
       activeAuthors = [];
     }
@@ -58,12 +65,12 @@ function loadUserAuthors() {
   renderFilterTags();
 }
 
-// 渲染过滤标签（作者和关键词）
+// Render filter tags (authors and keywords)
 function renderFilterTags() {
   const filterTagsElement = document.getElementById('filterTags');
   const filterContainer = document.querySelector('.filter-label-container');
   
-  // 如果没有作者和关键词，仅隐藏标签区域，保留容器（以显示搜索按钮）
+  // If there are no authors and keywords, only hide the tag area, keep the container (to display the search button)
   if ((!userAuthors || userAuthors.length === 0) && (!userKeywords || userKeywords.length === 0)) {
     filterContainer.style.display = 'flex';
     if (filterTagsElement) {
@@ -79,14 +86,14 @@ function renderFilterTags() {
   }
   filterTagsElement.innerHTML = '';
   
-  // 先添加作者标签
+  // Add author tags first
   if (userAuthors && userAuthors.length > 0) {
     userAuthors.forEach(author => {
       const tagElement = document.createElement('span');
       tagElement.className = `category-button author-button ${activeAuthors.includes(author) ? 'active' : ''}`;
       tagElement.textContent = author;
       tagElement.dataset.author = author;
-      tagElement.title = "匹配作者姓名";
+      tagElement.title = "Match author name";
       
       tagElement.addEventListener('click', () => {
         toggleAuthorFilter(author);
@@ -94,7 +101,7 @@ function renderFilterTags() {
       
       filterTagsElement.appendChild(tagElement);
       
-      // 添加出现动画后移除动画类
+      // Remove animation class after adding appearance animation
       if (!activeAuthors.includes(author)) {
         tagElement.classList.add('tag-appear');
         setTimeout(() => {
@@ -104,14 +111,14 @@ function renderFilterTags() {
     });
   }
   
-  // 再添加关键词标签
+  // Then add keyword tags
   if (userKeywords && userKeywords.length > 0) {
     userKeywords.forEach(keyword => {
       const tagElement = document.createElement('span');
       tagElement.className = `category-button keyword-button ${activeKeywords.includes(keyword) ? 'active' : ''}`;
       tagElement.textContent = keyword;
       tagElement.dataset.keyword = keyword;
-      tagElement.title = "匹配标题和摘要中的关键词";
+      tagElement.title = "Match keywords in title and abstract";
       
       tagElement.addEventListener('click', () => {
         toggleKeywordFilter(keyword);
@@ -119,7 +126,7 @@ function renderFilterTags() {
       
       filterTagsElement.appendChild(tagElement);
       
-      // 添加出现动画后移除动画类
+      // Remove animation class after adding appearance animation
       if (!activeKeywords.includes(keyword)) {
         tagElement.classList.add('tag-appear');
         setTimeout(() => {
@@ -130,80 +137,80 @@ function renderFilterTags() {
   }
 }
 
-// 切换关键词过滤
+// Toggle keyword filter
 function toggleKeywordFilter(keyword) {
   const index = activeKeywords.indexOf(keyword);
   
   if (index === -1) {
-    // 激活该关键词
+    // Activate this keyword
     activeKeywords.push(keyword);
   } else {
-    // 取消激活该关键词
+    // Deactivate this keyword
     activeKeywords.splice(index, 1);
   }
   
-  // 更新关键词标签UI
+  // Update keyword tag UI
   const keywordTags = document.querySelectorAll('[data-keyword]');
   keywordTags.forEach(tag => {
     if (tag.dataset.keyword === keyword) {
-      // 先移除上一次可能的高亮动画
+      // First remove possible previous highlight animation
       tag.classList.remove('tag-highlight');
       
-      // 添加/移除激活状态
+      // Add/remove active state
       tag.classList.toggle('active', activeKeywords.includes(keyword));
       
-      // 添加高亮动画
+      // Add highlight animation
       setTimeout(() => {
         tag.classList.add('tag-highlight');
       }, 10);
       
-      // 移除高亮动画
+      // Remove highlight animation
       setTimeout(() => {
         tag.classList.remove('tag-highlight');
       }, 1000);
     }
   });
   
-  // 重新渲染论文列表
+  // Re-render paper list
   renderPapers();
 }
 
 
-// 切换作者过滤
+// Toggle author filter
 function toggleAuthorFilter(author) {
   const index = activeAuthors.indexOf(author);
   
   if (index === -1) {
-    // 激活该作者
+    // Activate this author
     activeAuthors.push(author);
   } else {
-    // 取消激活该作者
+    // Deactivate this author
     activeAuthors.splice(index, 1);
   }
   
-  // 更新作者标签UI
+  // Update author tag UI
   const authorTags = document.querySelectorAll('[data-author]');
   authorTags.forEach(tag => {
     if (tag.dataset.author === author) {
-      // 先移除上一次可能的高亮动画
+      // First remove possible previous highlight animation
       tag.classList.remove('tag-highlight');
       
-      // 添加/移除激活状态
+      // Add/remove active state
       tag.classList.toggle('active', activeAuthors.includes(author));
       
-      // 添加高亮动画
+      // Add highlight animation
       setTimeout(() => {
         tag.classList.add('tag-highlight');
       }, 10);
       
-      // 移除高亮动画
+      // Remove highlight animation
       setTimeout(() => {
         tag.classList.remove('tag-highlight');
       }, 1000);
     }
   });
   
-  // 重新渲染论文列表
+  // Re-render paper list
   renderPapers();
 }
 
@@ -212,10 +219,10 @@ document.addEventListener('DOMContentLoaded', () => {
   
   fetchGitHubStats();
   
-  // 加载用户关键词
+  // Load user keywords
   loadUserKeywords();
   
-  // 加载用户作者
+  // Load user authors
   loadUserAuthors();
   
   fetchAvailableDates().then(() => {
@@ -235,14 +242,14 @@ async function fetchGitHubStats() {
     document.getElementById('starCount').textContent = starCount;
     document.getElementById('forkCount').textContent = forkCount;
   } catch (error) {
-    console.error('获取GitHub统计数据失败:', error);
+    console.error('Failed to fetch GitHub statistics:', error);
     document.getElementById('starCount').textContent = '?';
     document.getElementById('forkCount').textContent = '?';
   }
 }
 
 function initEventListeners() {
-  // 日期选择器相关的事件监听
+  // Date picker related event listeners
   const calendarButton = document.getElementById('calendarButton');
   calendarButton.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -263,34 +270,34 @@ function initEventListeners() {
 
   document.getElementById('dateRangeMode').addEventListener('change', toggleRangeMode);
   
-  // 其他原有的事件监听器
+  // Other original event listeners
   document.getElementById('closeModal').addEventListener('click', closeModal);
   
   document.querySelector('.paper-modal').addEventListener('click', (event) => {
     const modal = document.querySelector('.paper-modal');
     const pdfContainer = modal.querySelector('.pdf-container');
     
-    // 如果点击的是模态框背景
+    // If clicking on modal background
     if (event.target === modal) {
-      // 检查PDF是否处于放大状态
+      // Check if PDF is in expanded state
       if (pdfContainer && pdfContainer.classList.contains('expanded')) {
-        // 如果PDF是放大的，先将其恢复正常大小
+        // If PDF is expanded, restore it to normal size first
         const expandButton = modal.querySelector('.pdf-expand-btn');
         if (expandButton) {
           togglePdfSize(expandButton);
         }
-        // 阻止事件继续传播，防止关闭整个模态框
+        // Prevent event propagation to avoid closing the entire modal
         event.stopPropagation();
       } else {
-        // 如果PDF不是放大状态，则关闭整个模态框
+        // If PDF is not expanded, close the entire modal
         closeModal();
       }
     }
   });
   
-  // 添加键盘事件监听 - Esc 键关闭模态框，左右箭头键切换论文，R 键显示随机论文
+  // Add keyboard event listeners - Esc to close modal, arrow keys to switch papers, Space to show random paper
   document.addEventListener('keydown', (event) => {
-    // 检查是否有输入框或文本区域处于焦点状态
+    // Check if input or textarea is focused
     const activeElement = document.activeElement;
     const isInputFocused = activeElement && (
       activeElement.tagName === 'INPUT' || 
@@ -302,20 +309,20 @@ function initEventListeners() {
       const paperModal = document.getElementById('paperModal');
       const datePickerModal = document.getElementById('datePickerModal');
       
-      // 关闭论文模态框
+      // Close paper modal
       if (paperModal.classList.contains('active')) {
         closeModal();
       }
-      // 关闭日期选择器模态框
+      // Close date picker modal
       else if (datePickerModal.classList.contains('active')) {
         toggleDatePicker();
       }
     }
-    // 左右箭头键导航论文（仅在论文模态框打开时）
+    // Arrow keys navigate papers (only when paper modal is open)
     else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
       const paperModal = document.getElementById('paperModal');
       if (paperModal.classList.contains('active')) {
-        event.preventDefault(); // 防止页面滚动
+        event.preventDefault(); // Prevent page scrolling
         
         if (event.key === 'ArrowLeft') {
           navigateToPreviousPaper();
@@ -324,27 +331,27 @@ function initEventListeners() {
         }
       }
     }
-    // space 键显示随机论文（在没有输入框焦点且日期选择器未打开时）
+    // Space key shows random paper (when no input is focused and date picker is not open)
     else if (event.key === ' ' || event.key === 'Spacebar') {
       const paperModal = document.getElementById('paperModal');
       const datePickerModal = document.getElementById('datePickerModal');
       
-      // 只有在没有输入框焦点且日期选择器没有打开时才触发
-      // 现在允许在论文模态框打开时也能使用R键切换到随机论文
+      // Only trigger when no input is focused and date picker is not open
+      // Now allow using Space key to switch to random paper even when paper modal is open
       if (!isInputFocused && !datePickerModal.classList.contains('active')) {
-        event.preventDefault(); // 防止页面刷新
-        event.stopPropagation(); // 阻止事件冒泡
+        event.preventDefault(); // Prevent page refresh
+        event.stopPropagation(); // Prevent event bubbling
         showRandomPaper();
       }
     }
   });
   
-  // 添加鼠标滚轮横向滚动支持
+  // Add mouse wheel horizontal scrolling support
   const categoryScroll = document.querySelector('.category-scroll');
   const keywordScroll = document.querySelector('.keyword-scroll');
   const authorScroll = document.querySelector('.author-scroll');
   
-  // 为类别滚动添加鼠标滚轮事件
+  // Add mouse wheel event for category scrolling
   if (categoryScroll) {
     categoryScroll.addEventListener('wheel', function(e) {
       if (e.deltaY !== 0) {
@@ -354,7 +361,7 @@ function initEventListeners() {
     });
   }
   
-  // 为关键词滚动添加鼠标滚轮事件
+  // Add mouse wheel event to keyword scrolling
   if (keywordScroll) {
     keywordScroll.addEventListener('wheel', function(e) {
       if (e.deltaY !== 0) {
@@ -364,7 +371,7 @@ function initEventListeners() {
     });
   }
   
-  // 为作者滚动添加鼠标滚轮事件
+  // Add mouse wheel event to author scrolling
   if (authorScroll) {
     authorScroll.addEventListener('wheel', function(e) {
       if (e.deltaY !== 0) {
@@ -374,7 +381,7 @@ function initEventListeners() {
     });
   }
 
-  // 其他事件监听器...
+  // Add event listeners for category buttons
   const categoryButtons = document.querySelectorAll('.category-button');
   categoryButtons.forEach(button => {
     button.addEventListener('click', () => {
@@ -383,7 +390,7 @@ function initEventListeners() {
     });
   });
 
-  // 回到顶部按钮：滚动显示/隐藏 + 点击回到顶部
+  // Add event listener for back to top button
   const backToTopButton = document.getElementById('backToTop');
   if (backToTopButton) {
     const updateBackToTopVisibility = () => {
@@ -395,7 +402,7 @@ function initEventListeners() {
       }
     };
 
-    // 初始判断一次（防止刷新在中部时不显示）
+    // Initial check (to show button if already scrolled)
     updateBackToTopVisibility();
     window.addEventListener('scroll', updateBackToTopVisibility, { passive: true });
 
@@ -404,7 +411,7 @@ function initEventListeners() {
     });
   }
 
-  // 文本搜索：放大镜切换显示输入框
+  // Add event listener for text search toggle
   const searchToggle = document.getElementById('textSearchToggle');
   const searchWrapper = document.querySelector('#textSearchContainer .search-input-wrapper');
   const searchInput = document.getElementById('textSearchInput');
@@ -417,11 +424,11 @@ function initEventListeners() {
       searchInput.focus();
     });
 
-    // 输入时更新查询并重新渲染
+    // Update query and re-render on input
     const handleInput = () => {
       const value = searchInput.value.trim();
       textSearchQuery = value;
-      // 有非空文本时：通过切换函数真正停用关键词/作者过滤，并记录之前状态
+      //  non-empty text : Use a toggle function
       if (textSearchQuery.length > 0) {
         if (previousActiveKeywords === null) {
           previousActiveKeywords = [...activeKeywords];
@@ -429,17 +436,17 @@ function initEventListeners() {
         if (previousActiveAuthors === null) {
           previousActiveAuthors = [...activeAuthors];
         }
-        // 逐个停用当前激活的关键词/作者
-        // 注意：在遍历前复制数组，避免在切换过程中修改原数组导致遍历问题
+        // Disable each active keyword/author
+        // Note: Copy array before iteration to avoid modifying original array during iteration
         const keywordsToDisable = [...activeKeywords];
         const authorsToDisable = [...activeAuthors];
         keywordsToDisable.forEach(k => toggleKeywordFilter(k));
         authorsToDisable.forEach(a => toggleAuthorFilter(a));
       } else {
-        // 文本删除为空，恢复之前记录的关键词/作者激活状态
+        // Text deleted to empty, restore previous active keywords/authors
         if (previousActiveKeywords && previousActiveKeywords.length > 0) {
           previousActiveKeywords.forEach(k => {
-            // 若当前未激活则切换回激活
+            // If not currently active, toggle back to active
             if (!activeKeywords.includes(k)) toggleKeywordFilter(k);
           });
         }
@@ -450,11 +457,11 @@ function initEventListeners() {
         }
         previousActiveKeywords = null;
         previousActiveAuthors = null;
-        // 文本为空时自动隐藏输入框
+        // Text empty, hide input box
         searchWrapper.style.display = 'none';
       }
 
-      // 控制清除按钮显示
+      // Control clear button display
       searchClear.style.display = textSearchQuery.length > 0 ? 'inline-flex' : 'none';
 
       renderPapers();
@@ -462,13 +469,13 @@ function initEventListeners() {
 
     searchInput.addEventListener('input', handleInput);
 
-    // 清除按钮：清空文本，恢复其他过滤
+    // Clear button: clear text, restore other filters
     searchClear.addEventListener('click', (e) => {
       e.stopPropagation();
       searchInput.value = '';
       textSearchQuery = '';
       searchClear.style.display = 'none';
-      // 恢复之前的过滤状态（如有）
+      // Restore previous filters if any
       if (previousActiveKeywords && previousActiveKeywords.length > 0) {
         previousActiveKeywords.forEach(k => {
           if (!activeKeywords.includes(k)) toggleKeywordFilter(k);
@@ -482,11 +489,11 @@ function initEventListeners() {
       previousActiveKeywords = null;
       previousActiveAuthors = null;
       renderPapers();
-      // 清空后隐藏输入框
+      // Clear after hiding input box
       searchWrapper.style.display = 'none';
     });
 
-    // 失焦时：若文本为空则隐藏输入框（保持有文本时不隐藏）
+    // Blur event: if text is empty, hide input box (keep hidden if text is not empty)
     searchInput.addEventListener('blur', () => {
       const value = searchInput.value.trim();
       if (value.length === 0) {
@@ -494,7 +501,7 @@ function initEventListeners() {
       }
     });
 
-    // 点击其他地方不隐藏输入框（需求4），因此不添加blur隐藏逻辑
+    // Clicking elsewhere does not hide the input box (requirement 4), so no blur hide logic added
   }
 }
 
@@ -505,12 +512,12 @@ function getPreferredLanguage() {
   if (browserLang.startsWith('zh')) {
     return 'Chinese';
   }
-  // Check if browser is set to Korean variants
-  if (browserLang.startsWith('ko')) {
-    return 'Korean';
-  }
-  // Default to Korean for all other languages
-  return 'Korean';
+  // # Korean language support (commented for future use with premium API)
+  // if (browserLang.startsWith('ko')) {
+  //   return 'Korean';
+  // }
+  // Default to English for all other languages
+  return 'English';
 }
 
 // Function to select the best available language for a date
@@ -529,15 +536,17 @@ function selectLanguageForDate(date, preferredLanguage = null) {
     return preferred;
   }
   
-  // Fallback: prefer Korean if available, then Chinese, otherwise use the first available
-  if (availableLanguages.includes('Korean')) return 'Korean';
+  // Fallback: prefer English if available, then Chinese, otherwise use the first available
+  // # Korean language support (commented for future use with premium API)
+  // if (availableLanguages.includes('Korean')) return 'Korean';
+  if (availableLanguages.includes('English')) return 'English';
   if (availableLanguages.includes('Chinese')) return 'Chinese';
   return availableLanguages[0];
 }
 
 async function fetchAvailableDates() {
   try {
-    // 从 data 分支获取文件列表
+    // Get file list from data branch
     const fileListUrl = DATA_CONFIG.getDataUrl('assets/file-list.txt');
     const response = await fetch(fileListUrl);
     if (!response.ok) {
@@ -547,7 +556,9 @@ async function fetchAvailableDates() {
     const text = await response.text();
     const files = text.trim().split('\n');
 
-    const dateRegex = /(\d{4}-\d{2}-\d{2})_AI_enhanced_(English|Chinese|Korean)\.jsonl/;
+    const dateRegex = /(\d{4}-\d{2}-\d{2})_AI_enhanced_(English|Chinese)\.jsonl/;
+    // # Korean language support (commented for future use with premium API)
+    // const dateRegex = /(\d{4}-\d{2}-\d{2})_AI_enhanced_(English|Chinese|Korean)\.jsonl/;
     const dateLanguageMap = new Map(); // Store date -> available languages
     const dates = [];
     
@@ -574,7 +585,7 @@ async function fetchAvailableDates() {
 
     return availableDates;
   } catch (error) {
-    console.error('获取可用日期失败:', error);
+    console.error('Failed to fetch available dates:', error);
   }
 }
 
@@ -585,36 +596,36 @@ function initDatePicker() {
     flatpickrInstance.destroy();
   }
   
-  // 创建可用日期的映射，用于禁用无效日期
+  // Create mapping of available dates to disable invalid dates
   const enabledDatesMap = {};
   availableDates.forEach(date => {
     enabledDatesMap[date] = true;
   });
   
-  // 配置 Flatpickr
+  // Configure Flatpickr
   flatpickrInstance = flatpickr(datepickerInput, {
     inline: true,
     dateFormat: "Y-m-d",
     defaultDate: availableDates[0],
     enable: [
       function(date) {
-        // 只启用有效日期
+        // Only enable valid dates
         const dateStr = date.getFullYear() + "-" +
                         String(date.getMonth() + 1).padStart(2, '0') + "-" +
                         String(date.getDate()).padStart(2, '0');
-        // 在 availableDates[0] 之后的日期全部返回 false，否则返回 true
+        // Return false for dates after availableDates[0], otherwise return true
         return dateStr <= availableDates[0];
       }
     ],
     onChange: function(selectedDates, dateStr) {
       if (isRangeMode && selectedDates.length === 2) {
-        // 处理日期范围选择
+        // Handle date range selection
         const startDate = formatDateForAPI(selectedDates[0]);
         const endDate = formatDateForAPI(selectedDates[1]);
         loadPapersByDateRange(startDate, endDate);
         toggleDatePicker();
       } else if (!isRangeMode && selectedDates.length === 1) {
-        // 处理单个日期选择
+        // Handle single date selection
         const selectedDate = formatDateForAPI(selectedDates[0]);
         // if (availableDates.includes(selectedDate)) {
           loadPapersByDate(selectedDate);
@@ -624,7 +635,7 @@ function initDatePicker() {
     }
   });
   
-  // 隐藏日期输入框
+  // Hide date input box
   const inputElement = document.querySelector('.flatpickr-input');
   if (inputElement) {
     inputElement.style.display = 'none';
@@ -649,7 +660,7 @@ async function loadPapersByDate(date) {
   currentDate = date;
   document.getElementById('currentDate').textContent = formatDate(date);
   
-  // 更新日期选择器中的选中日期
+  // Update selected date in date picker
   if (flatpickrInstance) {
     flatpickrInstance.setDate(date, false);
   }
@@ -667,10 +678,10 @@ async function loadPapersByDate(date) {
   
   try {
     const selectedLanguage = selectLanguageForDate(date);
-    // 从 data 分支获取数据文件
+    // Get data file from data branch
     const dataUrl = DATA_CONFIG.getDataUrl(`data/${date}_AI_enhanced_${selectedLanguage}.jsonl`);
     const response = await fetch(dataUrl);
-    // 如果文件不存在（例如返回 404），在论文展示区域提示没有论文
+    // If file doesn't exist (e.g., returns 404), show no papers message in display area
     if (!response.ok) {
       if (response.status === 404) {
         container.innerHTML = `
@@ -685,7 +696,7 @@ async function loadPapersByDate(date) {
       throw new Error(`HTTP ${response.status}`);
     }
     const text = await response.text();
-    // 空文件也提示没有论文
+    // Empty file also shows no papers message
     if (!text || text.trim() === '') {
       container.innerHTML = `
         <div class="loading-container">
@@ -705,7 +716,7 @@ async function loadPapersByDate(date) {
     
     renderPapers();
   } catch (error) {
-    console.error('加载论文数据失败:', error);
+    console.error('Failed to load paper data:', error);
     container.innerHTML = `
       <div class="loading-container">
         <p>Loading data fails. Please retry.</p>
@@ -763,7 +774,7 @@ function parseJsonlData(jsonlText, date) {
   return result;
 }
 
-// 获取所有类别并按偏好排序
+// Get all categories and sort by preference
 function getAllCategories(data) {
   const categories = Object.keys(data);
   const catePaperCount = {};
@@ -818,10 +829,10 @@ function filterByCategory(category) {
     button.classList.toggle('active', button.dataset.category === category);
   });
   
-  // 保持当前激活的过滤标签
+  // Keep current active filter tags
   renderFilterTags();
   
-  // 重置页面滚动条到顶部
+  // Reset page scroll to top
   window.scrollTo({
     top: 0,
     behavior: 'smooth'
@@ -830,7 +841,7 @@ function filterByCategory(category) {
   renderPapers();
 }
 
-// 帮助函数：高亮文本中的匹配内容
+// Highlight matching content in text
 function highlightMatches(text, terms, className = 'highlight-match') {
   if (!terms || terms.length === 0 || !text) {
     return text;
@@ -850,24 +861,24 @@ function highlightMatches(text, terms, className = 'highlight-match') {
   return result;
 }
 
-// 帮助函数：格式化作者列表（用于论文卡片显示）
-// 规则：≤4个作者全部显示，>4个作者显示前2+后2，中间用省略号
+// Format author list for paper card display
+// Rule: <=4 authors show all, >4 authors show first 2+last 2, with ellipsis in between
 function formatAuthorsForCard(authorsString, authorTerms = []) {
   if (!authorsString) {
     return '';
   }
   
-  // 将作者字符串解析为数组（处理逗号分隔的情况）
+  // Parse author string into array (handle comma-separated cases)
   const authorsArray = authorsString.split(',').map(author => author.trim()).filter(author => author.length > 0);
   
   if (authorsArray.length === 0) {
     return '';
   }
   
-  // 如果不超过4个作者，全部显示
+  // If not more than 4 authors, show all
   if (authorsArray.length <= 4) {
     return authorsArray.map(author => {
-      // 对每个作者应用高亮
+      // Apply highlight to each author
       const highlightedAuthor = authorTerms.length > 0 
         ? highlightMatches(author, authorTerms, 'author-highlight')
         : author;
@@ -875,13 +886,13 @@ function formatAuthorsForCard(authorsString, authorTerms = []) {
     }).join(', ');
   }
   
-  // 超过4个作者：显示前2个、省略号、后2个
+  // If more than 4 authors, show first 2+last 2 with ellipsis
   const firstTwo = authorsArray.slice(0, 2);
   const lastTwo = authorsArray.slice(-2);
   
   const result = [];
   
-  // 前2个作者
+  // First 2 authors
   firstTwo.forEach(author => {
     const highlightedAuthor = authorTerms.length > 0 
       ? highlightMatches(author, authorTerms, 'author-highlight')
@@ -889,10 +900,10 @@ function formatAuthorsForCard(authorsString, authorTerms = []) {
     result.push(`<span class="author-item">${highlightedAuthor}</span>`);
   });
   
-  // 省略号
+  // Ellipsis
   result.push('<span class="author-ellipsis">...</span>');
   
-  // 后2个作者
+  // Last 2 authors
   lastTwo.forEach(author => {
     const highlightedAuthor = authorTerms.length > 0 
       ? highlightMatches(author, authorTerms, 'author-highlight')
@@ -920,20 +931,20 @@ function renderPapers() {
     papers = paperData[currentCategory];
   }
   
-  // 创建匹配论文的集合
+  // Create collection of papers matching filters
   let filteredPapers = [...papers];
 
-  // 重置所有论文的匹配状态，避免上次渲染的残留
+  // Reset all papers' match status to avoid residual from previous render
   filteredPapers.forEach(p => {
     p.isMatched = false;
     p.matchReason = undefined;
   });
 
-  // 文本搜索优先：当存在非空文本时，像关键词/作者一样只排序不隐藏
+  // Text search priority: when non-empty text exists, sort like keywords/authors without hiding
   if (textSearchQuery && textSearchQuery.trim().length > 0) {
     const q = textSearchQuery.toLowerCase();
 
-    // 排序：匹配的排前
+    // Sort: matched papers first
     filteredPapers.sort((a, b) => {
       const hayA = [
         a.title,
@@ -964,7 +975,7 @@ function renderPapers() {
       return 0;
     });
 
-    // 标记匹配项，用于卡片样式与提示
+    // Mark matched items for card styles and tooltips
     filteredPapers.forEach(p => {
       const hay = [
         p.title,
@@ -982,9 +993,9 @@ function renderPapers() {
       p.matchReason = matched ? [`文本: ${textSearchQuery}`] : undefined;
     });
   } else {
-    // 关键词和作者匹配，但不过滤，只排序
+    // Keywords and authors match, but do not filter, only sort
     if (activeKeywords.length > 0 || activeAuthors.length > 0) {
-      // 对论文进行排序，将匹配的论文放在前面
+      // Sort papers, put matched papers first
       filteredPapers.sort((a, b) => {
         const aMatchesKeyword = activeKeywords.length > 0 ? 
           activeKeywords.some(keyword => {
@@ -1061,37 +1072,37 @@ function renderPapers() {
     }
   }
   
-  // 关键词和作者匹配，但不过滤，只排序
+  // Keywords and authors match, but do not filter, only sort
   if (activeKeywords.length > 0 || activeAuthors.length > 0) {
-    // 对论文进行排序，将匹配的论文放在前面
+    // Sort papers, put matched papers first
     filteredPapers.sort((a, b) => {
       const aMatchesKeyword = activeKeywords.length > 0 ? 
         activeKeywords.some(keyword => {
-          // 仅在标题和摘要中搜索关键词
+          // Search keywords only in title and summary
           const searchText = `${a.title} ${a.summary}`.toLowerCase();
           return searchText.includes(keyword.toLowerCase());
         }) : false;
         
       const aMatchesAuthor = activeAuthors.length > 0 ?
         activeAuthors.some(author => {
-          // 仅在作者中搜索作者名
+          // Search authors only in authors field
           return a.authors.toLowerCase().includes(author.toLowerCase());
         }) : false;
         
       const bMatchesKeyword = activeKeywords.length > 0 ?
         activeKeywords.some(keyword => {
-          // 仅在标题和摘要中搜索关键词
+          // Search keywords only in title and summary
           const searchText = `${b.title} ${b.summary}`.toLowerCase();
           return searchText.includes(keyword.toLowerCase());
         }) : false;
         
       const bMatchesAuthor = activeAuthors.length > 0 ?
         activeAuthors.some(author => {
-          // 仅在作者中搜索作者名
+          // Search authors only in authors field
           return b.authors.toLowerCase().includes(author.toLowerCase());
         }) : false;
       
-      // a和b的匹配状态（关键词或作者匹配都算）
+      // a and b match status (keyword or author match counts)
       const aMatches = aMatchesKeyword || aMatchesAuthor;
       const bMatches = bMatchesKeyword || bMatchesAuthor;
       
@@ -1100,7 +1111,7 @@ function renderPapers() {
       return 0;
     });
     
-    // 标记匹配的论文
+    // Mark matched papers
     filteredPapers.forEach(paper => {
       const matchesKeyword = activeKeywords.length > 0 ?
         activeKeywords.some(keyword => {
@@ -1113,10 +1124,10 @@ function renderPapers() {
           return paper.authors.toLowerCase().includes(author.toLowerCase());
         }) : false;
         
-      // 添加匹配标记（用于后续高亮整个论文卡片）
+      // Add match mark (for later highlighting the entire paper card)
       paper.isMatched = matchesKeyword || matchesAuthor;
       
-      // 添加匹配原因（用于显示匹配提示）
+      // Add match reason (for display of match提示）
       if (paper.isMatched) {
         paper.matchReason = [];
         if (matchesKeyword) {
@@ -1139,7 +1150,7 @@ function renderPapers() {
     });
   }
   
-  // 存储当前过滤后的论文列表，用于箭头键导航
+  // Store current filtered papers for arrow key navigation
   currentFilteredPapers = [...filteredPapers];
   
   if (filteredPapers.length === 0) {
@@ -1153,12 +1164,12 @@ function renderPapers() {
   
   filteredPapers.forEach((paper, index) => {
     const paperCard = document.createElement('div');
-    // 添加匹配高亮类
+    // Add match highlight class
     paperCard.className = `paper-card ${paper.isMatched ? 'matched-paper' : ''}`;
     paperCard.dataset.id = paper.id || paper.url;
     
     if (paper.isMatched) {
-      // 添加匹配原因提示
+      // Add match reason tooltip
       paperCard.title = `匹配: ${paper.matchReason.join(' | ')}`;
     }
     
@@ -1166,7 +1177,7 @@ function renderPapers() {
       paper.allCategories.map(cat => `<span class="category-tag">${cat}</span>`).join('') : 
       `<span class="category-tag">${paper.category}</span>`;
     
-    // 组合需要高亮的词：关键词 + 文本搜索
+    // Combine terms to highlight: keywords + text search
     const titleSummaryTerms = [];
     if (activeKeywords.length > 0) {
       titleSummaryTerms.push(...activeKeywords);
@@ -1175,7 +1186,7 @@ function renderPapers() {
       titleSummaryTerms.push(textSearchQuery.trim());
     }
 
-    // 高亮标题和摘要（关键词与文本搜索）
+    // Highlight title and summary (keywords + text search)
     const highlightedTitle = titleSummaryTerms.length > 0 
       ? highlightMatches(paper.title, titleSummaryTerms, 'keyword-highlight') 
       : paper.title;
@@ -1183,15 +1194,15 @@ function renderPapers() {
       ? highlightMatches(paper.summary, titleSummaryTerms, 'keyword-highlight') 
       : paper.summary;
 
-    // 高亮作者（作者过滤 + 文本搜索）
+    // Highlight authors (author filter + text search)
     const authorTerms = [];
     if (activeAuthors.length > 0) authorTerms.push(...activeAuthors);
     if (textSearchQuery && textSearchQuery.trim().length > 0) authorTerms.push(textSearchQuery.trim());
     
-    // 格式化作者列表（应用截断规则和高亮）
+    // Format author list (apply truncation rules and highlighting)
     const formattedAuthors = formatAuthorsForCard(paper.authors, authorTerms);
     
-    // 构建 GitHub 按钮 HTML
+    // Build GitHub button HTML
     // let githubHtml = '';
     // if (paper.code_url) {
     //   const stars = paper.code_stars ? `<span class="github-stars">★ ${paper.code_stars}</span>` : '';
@@ -1230,7 +1241,7 @@ function renderPapers() {
     `;
     
     paperCard.addEventListener('click', () => {
-      currentPaperIndex = index; // 记录当前点击的论文索引
+      currentPaperIndex = index; // Record current clicked paper index
       showPaperDetails(paper, index + 1);
     });
     
@@ -1246,19 +1257,19 @@ function showPaperDetails(paper, paperIndex) {
   const pdfLink = document.getElementById('pdfLink');
   const htmlLink = document.getElementById('htmlLink');
   
-  // 重置模态框的滚动位置
+  // Reset modal scroll position
   modalBody.scrollTop = 0;
   
-  // 组合高亮词：关键词 + 文本搜索
+  // Combine highlight terms: keywords + text search
   const modalTitleTerms = [];
   if (activeKeywords.length > 0) modalTitleTerms.push(...activeKeywords);
   if (textSearchQuery && textSearchQuery.trim().length > 0) modalTitleTerms.push(textSearchQuery.trim());
-  // 高亮标题
+  // Highlight title
   const highlightedTitle = modalTitleTerms.length > 0 
     ? highlightMatches(paper.title, modalTitleTerms, 'keyword-highlight') 
     : paper.title;
   
-  // 在标题前添加索引号
+  // Add index number before title
   modalTitle.innerHTML = paperIndex ? `<span class="paper-index-badge">${paperIndex}</span> ${highlightedTitle}` : highlightedTitle;
   
   const abstractText = paper.details || '';
@@ -1267,7 +1278,7 @@ function showPaperDetails(paper, paperIndex) {
     paper.allCategories.join(', ') : 
     paper.category;
   
-  // 高亮作者（作者过滤 + 文本搜索）
+  // Highlight authors (author filter + text search)
   const modalAuthorTerms = [];
   if (activeAuthors.length > 0) modalAuthorTerms.push(...activeAuthors);
   if (textSearchQuery && textSearchQuery.trim().length > 0) modalAuthorTerms.push(textSearchQuery.trim());
@@ -1275,17 +1286,17 @@ function showPaperDetails(paper, paperIndex) {
     ? highlightMatches(paper.authors, modalAuthorTerms, 'author-highlight') 
     : paper.authors;
   
-  // 高亮摘要（关键词 + 文本搜索）
+  // Highlight summary (keywords + text search)
   const highlightedSummary = modalTitleTerms.length > 0 
     ? highlightMatches(paper.summary, modalTitleTerms, 'keyword-highlight') 
     : paper.summary;
   
-  // 高亮详情（Abstract/details）
+  // Highlight abstract (Abstract/details)
   const highlightedAbstract = modalTitleTerms.length > 0 
     ? highlightMatches(abstractText, modalTitleTerms, 'keyword-highlight') 
     : abstractText;
   
-  // 高亮其他部分（如果存在且是摘要的一部分）
+  // Highlight other sections (if exist and part of abstract)
   const highlightedMotivation = paper.motivation && modalTitleTerms.length > 0 
     ? highlightMatches(paper.motivation, modalTitleTerms, 'keyword-highlight') 
     : paper.motivation;
@@ -1302,10 +1313,10 @@ function showPaperDetails(paper, paperIndex) {
     ? highlightMatches(paper.conclusion, modalTitleTerms, 'keyword-highlight') 
     : paper.conclusion;
   
-  // 判断是否需要显示高亮说明
+  // Determine if highlight legend should be shown
   const showHighlightLegend = activeKeywords.length > 0 || activeAuthors.length > 0;
   
-  // 添加匹配标记
+  // Add match mark
   const matchedPaperClass = paper.isMatched ? 'matched-paper-details' : '';
   
   const modalContent = `
@@ -1364,11 +1375,11 @@ function showPaperDetails(paper, paperIndex) {
   }
   // ---------------------------
 
-  // 提示词来自：https://papers.cool/
-  prompt = `请你阅读这篇文章${paper.url.replace('abs', 'pdf')},总结一下这篇文章解决的问题、相关工作、研究方法、做了什么实验及其结果、结论，最后整体总结一下这篇文章的内容`
-  document.getElementById('kimiChatLink').href = `https://www.kimi.com/_prefill_chat?prefill_prompt=${prompt}&system_prompt=你是一个学术助手，后面的对话将围绕着以下论文内容进行，已经通过链接给出了论文的PDF和论文已有的FAQ。用户将继续向你咨询论文的相关问题，请你作出专业的回答，不要出现第一人称，当涉及到分点回答时，鼓励你以markdown格式输出。&send_immediately=true&force_search=true`;
+  // Prompt from: https://papers.cool/
+  prompt = `Read this paper ${paper.url.replace('abs', 'pdf')}, summarize the problems solved, related work, research methods, experiments and results, conclusion, and finally summarize the content of this paper.`
+  document.getElementById('kimiChatLink').href = `https://www.kimi.com/_prefill_chat?prefill_prompt=${prompt}&system_prompt=You are an academic assistant, the following conversation will revolve around the content of the following paper. Already through the link provided the PDF and existing FAQ of the paper. The user will continue to ask you questions about the paper, please answer professionally, do not appear in the first person, when涉及到分点回答时，鼓励你以markdown格式输出。&send_immediately=true&force_search=true`;
   
-  // 更新论文位置信息
+  // Update paper position information
   const paperPosition = document.getElementById('paperPosition');
   if (paperPosition && currentFilteredPapers.length > 0) {
     paperPosition.textContent = `${currentPaperIndex + 1} / ${currentFilteredPapers.length}`;
@@ -1382,14 +1393,14 @@ function closeModal() {
   const modal = document.getElementById('paperModal');
   const modalBody = document.getElementById('modalBody');
   
-  // 重置模态框的滚动位置
+  // Reset modal scroll position
   modalBody.scrollTop = 0;
   
   modal.classList.remove('active');
   document.body.style.overflow = '';
 }
 
-// 导航到上一篇论文
+// Navigate to previous paper
 function navigateToPreviousPaper() {
   if (currentFilteredPapers.length === 0) return;
   
@@ -1398,7 +1409,7 @@ function navigateToPreviousPaper() {
   showPaperDetails(paper, currentPaperIndex + 1);
 }
 
-// 导航到下一篇论文
+// Navigate to next paper
 function navigateToNextPaper() {
   if (currentFilteredPapers.length === 0) return;
   
@@ -1407,47 +1418,47 @@ function navigateToNextPaper() {
   showPaperDetails(paper, currentPaperIndex + 1);
 }
 
-// 显示随机论文
+// Show random paper
 function showRandomPaper() {
-  // 检查是否有可用的论文
+  // Check if there are available papers
   if (currentFilteredPapers.length === 0) {
     console.log('No papers available to show random paper');
     return;
   }
   
-  // 生成随机索引
+  // Generate random index
   const randomIndex = Math.floor(Math.random() * currentFilteredPapers.length);
   const randomPaper = currentFilteredPapers[randomIndex];
   
-  // 更新当前论文索引
+  // Update current paper index
   currentPaperIndex = randomIndex;
   
-  // 显示随机论文
+  // Show random paper
   showPaperDetails(randomPaper, currentPaperIndex + 1);
   
-  // 显示随机论文指示器
+  // Show random paper indicator
   showRandomPaperIndicator();
   
   console.log(`Showing random paper: ${randomIndex + 1}/${currentFilteredPapers.length}`);
 }
 
-// 显示随机论文指示器
+// Show random paper indicator
 function showRandomPaperIndicator() {
-  // 移除已存在的指示器
+  // Remove existing indicator
   const existingIndicator = document.querySelector('.random-paper-indicator');
   if (existingIndicator) {
     existingIndicator.remove();
   }
   
-  // 创建新的指示器
+  // Create new indicator
   const indicator = document.createElement('div');
   indicator.className = 'random-paper-indicator';
   indicator.textContent = 'Random Paper';
   
-  // 添加到页面
+  // Add to page
   document.body.appendChild(indicator);
   
-  // 3秒后自动移除
+  // Remove after 3 seconds
   setTimeout(() => {
     if (indicator && indicator.parentNode) {
       indicator.remove();
@@ -1462,7 +1473,7 @@ function toggleDatePicker() {
   if (datePicker.classList.contains('active')) {
     document.body.style.overflow = 'hidden';
     
-    // 重新初始化日期选择器以确保它反映最新的可用日期
+    // Reinitialize date picker to ensure it reflects the latest available dates
     if (flatpickrInstance) {
       flatpickrInstance.setDate(currentDate, false);
     }
@@ -1486,7 +1497,7 @@ function formatDate(dateString) {
 }
 
 async function loadPapersByDateRange(startDate, endDate) {
-  // 获取日期范围内的所有有效日期
+  // Get all valid dates within the selected date range
   const validDatesInRange = availableDates.filter(date => {
     return date >= startDate && date <= endDate;
   });
@@ -1499,8 +1510,8 @@ async function loadPapersByDateRange(startDate, endDate) {
   currentDate = `${startDate} to ${endDate}`;
   document.getElementById('currentDate').textContent = `${formatDate(startDate)} - ${formatDate(endDate)}`;
   
-  // 不再重置激活的关键词和作者
-  // 而是保持当前选择状态
+  // Do not reset active keywords and authors
+  // Instead, keep the current selection state
   
   const container = document.getElementById('paperContainer');
   container.innerHTML = `
@@ -1511,18 +1522,18 @@ async function loadPapersByDateRange(startDate, endDate) {
   `;
   
   try {
-    // 加载所有日期的论文数据
+    // Load paper data for all dates
     const allPaperData = {};
     
     for (const date of validDatesInRange) {
       const selectedLanguage = selectLanguageForDate(date);
-      // 从 data 分支获取数据文件
+      // Get data file from data branch
       const dataUrl = DATA_CONFIG.getDataUrl(`data/${date}_AI_enhanced_${selectedLanguage}.jsonl`);
       const response = await fetch(dataUrl);
       const text = await response.text();
       const dataPapers = parseJsonlData(text, date);
       
-      // 合并数据
+      // Merge data
       Object.keys(dataPapers).forEach(category => {
         if (!allPaperData[category]) {
           allPaperData[category] = [];
@@ -1539,7 +1550,7 @@ async function loadPapersByDateRange(startDate, endDate) {
     
     renderPapers();
   } catch (error) {
-    console.error('加载论文数据失败:', error);
+    console.error('Failed to load paper data:', error);
     container.innerHTML = `
       <div class="loading-container">
         <p>Loading data fails. Please retry.</p>
@@ -1549,23 +1560,23 @@ async function loadPapersByDateRange(startDate, endDate) {
   }
 }
 
-// 清除所有激活的关键词
+// Clear all active keywords
 function clearAllKeywords() {
   activeKeywords = [];
   // renderKeywordTags();
-  // 重新渲染论文列表，移除关键词匹配的高亮和优先排序
+  // Re-render paper list, remove keyword match highlighting and priority sorting
   renderPapers();
 }
 
-// 清除所有作者过滤
+// Clear all author filters
 function clearAllAuthors() {
   activeAuthors = [];
   renderFilterTags();
-  // 重新渲染论文列表，移除作者匹配的高亮和优先排序
+  // Re-render paper list, remove author match highlighting and priority sorting
   renderPapers();
 }
 
-// 切换PDF预览器大小
+// Toggle PDF preview size
 function togglePdfSize(button) {
   const pdfContainer = button.closest('.pdf-preview-section').querySelector('.pdf-container');
   const iframe = pdfContainer.querySelector('iframe');
@@ -1573,30 +1584,30 @@ function togglePdfSize(button) {
   const collapseIcon = button.querySelector('.collapse-icon');
   
   if (pdfContainer.classList.contains('expanded')) {
-    // 恢复正常大小
+    // Restore normal size
     pdfContainer.classList.remove('expanded');
     iframe.style.height = '800px';
     expandIcon.style.display = 'block';
     collapseIcon.style.display = 'none';
     
-    // 移除遮罩层
+    // Remove overlay
     const overlay = document.querySelector('.pdf-overlay');
     if (overlay) {
       overlay.remove();
     }
   } else {
-    // 放大显示
+    // Expand display
     pdfContainer.classList.add('expanded');
     iframe.style.height = '90vh';
     expandIcon.style.display = 'none';
     collapseIcon.style.display = 'block';
     
-    // 添加遮罩层
+    // Add overlay
     const overlay = document.createElement('div');
     overlay.className = 'pdf-overlay';
     document.body.appendChild(overlay);
     
-    // 点击遮罩层时收起PDF
+    // Click overlay to collapse PDF
     overlay.addEventListener('click', () => {
       togglePdfSize(button);
     });

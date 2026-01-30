@@ -4,66 +4,66 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchGitHubStats();
 });
 
-// 初始化设置，从localStorage加载已保存的设置
+// Initialize settings, load saved settings from localStorage
 function initSettings() {
-  // 关键词偏好设置
+  // Keyword preference settings
   loadKeywordPreferences();
-  // 作者偏好设置
+  // Author preference settings
   loadAuthorPreferences();
 }
 
-// 从localStorage加载关键词偏好
+// Load keyword preferences from localStorage
 function loadKeywordPreferences() {
   const selectedKeywordsContainer = document.getElementById('selectedKeywords');
   selectedKeywordsContainer.innerHTML = '';
   
-  // 获取保存的关键词，如果没有则使用默认关键词
+  // Get saved keywords, use default if none
   let savedKeywords = localStorage.getItem('preferredKeywords');
-  let keywords = []; // 默认无关键词
+  let keywords = []; // Default no keywords
   
   if (savedKeywords) {
     try {
       keywords = JSON.parse(savedKeywords);
     } catch (e) {
-      console.error('解析保存的关键词失败:', e);
+      console.error('Failed to parse saved keywords:', e);
     }
   }
   
-  // 显示保存的关键词
+  // Display saved keywords
   if (keywords.length > 0) {
     keywords.forEach(keyword => {
       addKeywordTag(keyword);
     });
   } else {
-    // 显示空标签消息
+    // Show empty tag message
     showEmptyTagMessage();
   }
 }
 
-// 从localStorage加载作者偏好
+// Load author preferences from localStorage
 function loadAuthorPreferences() {
   const selectedAuthorsContainer = document.getElementById('selectedAuthors');
   selectedAuthorsContainer.innerHTML = '';
   
-  // 获取保存的作者，如果没有则为空数组
+  // Get saved authors, empty array if none
   let savedAuthors = localStorage.getItem('preferredAuthors');
-  let authors = []; // 默认无作者
+  let authors = []; // Default no authors
   
   if (savedAuthors) {
     try {
       authors = JSON.parse(savedAuthors);
     } catch (e) {
-      console.error('解析保存的作者失败:', e);
+      console.error('Failed to parse saved authors:', e);
     }
   }
   
-  // 显示保存的作者
+  // Display saved authors
   if (authors.length > 0) {
     authors.forEach(author => {
       addAuthorTag(author);
     });
   } else {
-    // 显示空标签消息
+    // Show empty tag message
     showEmptyAuthorMessage();
   }
 }
@@ -78,7 +78,7 @@ function showEmptyTagMessage() {
   selectedKeywordsContainer.appendChild(emptyMessage);
 }
 
-// 显示空作者标签消息
+// Show empty author tag message
 function showEmptyAuthorMessage() {
   const selectedAuthorsContainer = document.getElementById('selectedAuthors');
   const emptyMessage = document.createElement('div');
@@ -88,7 +88,7 @@ function showEmptyAuthorMessage() {
   selectedAuthorsContainer.appendChild(emptyMessage);
 }
 
-// 隐藏空标签消息
+// Hide empty tag message
 function hideEmptyTagMessage() {
   const emptyMessage = document.getElementById('emptyTagMessage');
   if (emptyMessage) {
@@ -96,7 +96,7 @@ function hideEmptyTagMessage() {
   }
 }
 
-// 隐藏空作者标签消息
+// Hide empty author tag message
 function hideEmptyAuthorMessage() {
   const emptyMessage = document.getElementById('emptyAuthorMessage');
   if (emptyMessage) {
@@ -104,27 +104,27 @@ function hideEmptyAuthorMessage() {
   }
 }
 
-// 添加关键词标签
+// Add keyword tag
 function addKeywordTag(keyword) {
   const selectedKeywordsContainer = document.getElementById('selectedKeywords');
   
-  // 移除空标签消息
+  // Remove empty tag message
   hideEmptyTagMessage();
   
-  // 检查关键词是否已存在
+  // Check if keyword already exists
   const existingTags = selectedKeywordsContainer.querySelectorAll('.category-button');
   for (let i = 0; i < existingTags.length; i++) {
     if (existingTags[i].textContent.trim().startsWith(keyword)) {
-      // 已存在该关键词，添加闪烁动画提示用户
+      // Keyword already exists, add blink animation to notify user
       existingTags[i].classList.add('tag-highlight');
       setTimeout(() => {
         existingTags[i].classList.remove('tag-highlight');
       }, 1000);
-      return; // 关键词已存在，不添加
+      return; // Keyword already exists, don't add
     }
   }
   
-  // 创建新的关键词标签
+  // Create new keyword tag
   const tagElement = document.createElement('span');
   tagElement.className = 'category-button tag-appear';
   tagElement.innerHTML = `${keyword} <button class="remove-tag">×</button>`;
@@ -135,14 +135,14 @@ function addKeywordTag(keyword) {
     e.preventDefault();
     e.stopPropagation();
     
-    // 添加删除动画
+    // Add delete animation
     tagElement.classList.add('tag-disappear');
     
-    // 动画结束后移除元素
+    // Remove element after animation ends
     setTimeout(() => {
       tagElement.remove();
       
-      // 如果没有标签了，显示空标签消息
+      // If no tags left, show empty tag message
       if (selectedKeywordsContainer.querySelectorAll('.category-button').length === 0) {
         showEmptyTagMessage();
       }
@@ -151,33 +151,33 @@ function addKeywordTag(keyword) {
   
   selectedKeywordsContainer.appendChild(tagElement);
   
-  // 添加出现动画后移除动画类
+  // Remove animation class after adding appearance animation
   setTimeout(() => {
     tagElement.classList.remove('tag-appear');
   }, 300);
 }
 
-// 添加作者标签
+// Add author tag
 function addAuthorTag(author) {
   const selectedAuthorsContainer = document.getElementById('selectedAuthors');
   
-  // 移除空标签消息
+  // Remove empty tag message
   hideEmptyAuthorMessage();
   
-  // 检查作者是否已存在
+  // Check if author already exists
   const existingTags = selectedAuthorsContainer.querySelectorAll('.category-button');
   for (let i = 0; i < existingTags.length; i++) {
     if (existingTags[i].textContent.trim().startsWith(author)) {
-      // 已存在该作者，添加闪烁动画提示用户
+      // Author already exists, add blink animation to notify user
       existingTags[i].classList.add('tag-highlight');
       setTimeout(() => {
         existingTags[i].classList.remove('tag-highlight');
       }, 1000);
-      return; // 作者已存在，不添加
+      return; // Author already exists, don't add
     }
   }
   
-  // 创建新的作者标签
+  // Create new author tag
   const tagElement = document.createElement('span');
   tagElement.className = 'category-button tag-appear';
   tagElement.innerHTML = `${author} <button class="remove-tag">×</button>`;
@@ -188,14 +188,14 @@ function addAuthorTag(author) {
     e.preventDefault();
     e.stopPropagation();
     
-    // 添加删除动画
+    // Add delete animation
     tagElement.classList.add('tag-disappear');
     
-    // 动画结束后移除元素
+    // Remove element after animation ends
     setTimeout(() => {
       tagElement.remove();
       
-      // 如果没有标签了，显示空标签消息
+      // If no tags left, show empty tag message
       if (selectedAuthorsContainer.querySelectorAll('.category-button').length === 0) {
         showEmptyAuthorMessage();
       }
@@ -204,15 +204,15 @@ function addAuthorTag(author) {
   
   selectedAuthorsContainer.appendChild(tagElement);
   
-  // 添加出现动画后移除动画类
+  // Remove animation class after adding appearance animation
   setTimeout(() => {
     tagElement.classList.remove('tag-appear');
   }, 300);
 }
 
-// 初始化事件监听器
+// Initialize event listeners
 function initEventListeners() {
-  // 关键词添加按钮
+  // Keyword add button
   const addKeywordButton = document.getElementById('addKeyword');
   addKeywordButton.addEventListener('click', () => {
     const keywordInput = document.getElementById('keywordInput');
@@ -224,7 +224,7 @@ function initEventListeners() {
     }
   });
   
-  // 关键词输入框回车事件
+  // Keyword input enter event
   const keywordInput = document.getElementById('keywordInput');
   keywordInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
@@ -238,7 +238,7 @@ function initEventListeners() {
     }
   });
   
-  // 作者添加按钮
+  // Author add button
   const addAuthorButton = document.getElementById('addAuthor');
   addAuthorButton.addEventListener('click', () => {
     const authorInput = document.getElementById('authorInput');
@@ -250,7 +250,7 @@ function initEventListeners() {
     }
   });
   
-  // 作者输入框回车事件
+  // Author input enter event
   const authorInput = document.getElementById('authorInput');
   authorInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
@@ -264,18 +264,18 @@ function initEventListeners() {
     }
   });
   
-  // 保存设置按钮
+  // Save settings button
   const saveSettingsButton = document.getElementById('saveSettings');
   saveSettingsButton.addEventListener('click', saveSettings);
   
-  // 重置设置按钮
+  // Reset settings button
   const resetSettingsButton = document.getElementById('resetSettings');
   resetSettingsButton.addEventListener('click', resetSettings);
 }
 
-// 保存设置
+// Save settings
 function saveSettings() {
-  // 获取所有选中的关键词
+  // Get all selected keywords
   const keywordTags = document.getElementById('selectedKeywords').querySelectorAll('.category-button');
   const keywords = [];
   keywordTags.forEach(tag => {
@@ -283,7 +283,7 @@ function saveSettings() {
     keywords.push(keywordName);
   });
   
-  // 获取所有选中的作者
+  // Get all selected authors
   const authorTags = document.getElementById('selectedAuthors').querySelectorAll('.category-button');
   const authors = [];
   authorTags.forEach(tag => {
@@ -291,45 +291,45 @@ function saveSettings() {
     authors.push(authorName);
   });
   
-  // 保存设置到localStorage
+  // Save settings to localStorage
   localStorage.setItem('preferredKeywords', JSON.stringify(keywords));
   localStorage.setItem('preferredAuthors', JSON.stringify(authors));
   
-  // 显示保存成功提示，添加成功图标
+  // Show save success notification with success icon
   showNotification('Settings saved successfully!', 'success');
 }
 
-// 重置设置
+// Reset settings
 function resetSettings() {
-  // 重置关键词
+  // Reset keywords
   const selectedKeywordsContainer = document.getElementById('selectedKeywords');
   selectedKeywordsContainer.innerHTML = '';
   
-  // 重置作者
+  // Reset authors
   const selectedAuthorsContainer = document.getElementById('selectedAuthors');
   selectedAuthorsContainer.innerHTML = '';
   
-  // 显示空标签消息
+  // Show empty tag message
   showEmptyTagMessage();
   showEmptyAuthorMessage();
   
-  // 显示重置成功提示
+  // Show reset success notification
   showNotification('Settings reset to default!', 'info');
 }
 
-// 显示通知
+// Show notification
 function showNotification(message, type = 'success') {
-  // 检查是否已存在通知元素
+  // Check if notification element already exists
   let notification = document.querySelector('.settings-notification');
   
   if (!notification) {
-    // 创建通知元素
+    // Create notification element
     notification = document.createElement('div');
     notification.className = 'settings-notification';
     document.body.appendChild(notification);
   }
   
-  // 根据类型设置图标
+  // Set icon based on type
   let icon = '';
   let bgColor = 'var(--primary-color)';
   
@@ -340,7 +340,7 @@ function showNotification(message, type = 'success') {
     bgColor = '#3b82f6';
   }
   
-  // 设置通知内容和样式
+  // Set notification content and style
   notification.innerHTML = `${icon}<span>${message}</span>`;
   notification.style.display = 'flex';
   notification.style.alignItems = 'center';
@@ -358,18 +358,18 @@ function showNotification(message, type = 'success') {
   notification.style.transform = 'translateY(20px)';
   notification.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
   
-  // 显示通知
+  // Show notification
   setTimeout(() => {
     notification.style.opacity = '1';
     notification.style.transform = 'translateY(0)';
   }, 10);
   
-  // 3秒后隐藏通知
+  // Hide notification after 3 seconds
   setTimeout(() => {
     notification.style.opacity = '0';
     notification.style.transform = 'translateY(20px)';
     
-    // 动画结束后移除元素
+    // Remove element after animation ends
     setTimeout(() => {
       if (notification.parentNode) {
         notification.parentNode.removeChild(notification);
@@ -378,7 +378,7 @@ function showNotification(message, type = 'success') {
   }, 3000);
 }
 
-// 获取GitHub统计数据
+// Fetch GitHub statistics
 async function fetchGitHubStats() {
   try {
     const response = await fetch('https://api.github.com/repos/Jonghwan-dev/Daily-ArXiv-Tool');
@@ -389,7 +389,7 @@ async function fetchGitHubStats() {
     document.getElementById('starCount').textContent = starCount;
     document.getElementById('forkCount').textContent = forkCount;
   } catch (error) {
-    console.error('获取GitHub统计数据失败:', error);
+    console.error('Failed to fetch GitHub statistics:', error);
     document.getElementById('starCount').textContent = '?';
     document.getElementById('forkCount').textContent = '?';
   }

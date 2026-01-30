@@ -1,67 +1,249 @@
-# 🚀 daily-arXiv-ai-enhanced
+# 🚀 Daily arXiv AI Enhanced
 
-> [!CAUTION]
-> 若您所在法域对学术数据有审查要求，谨慎运行本代码；任何二次分发版本必须履行合规审查（包括但不限于原始论文合规性、AI合规性）义务，否则一切法律后果由下游自行承担。
+> **Original Project**: [dw-dengwei/daily-arXiv-ai-enhanced](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced)  
+> **Modified by**: Jonghwan Kim (2026-01-30) / **Affiliation**: National Cancer Center, Korea
 
-> [!CAUTION]
-> If your jurisdiction has censorship requirements for academic data, run this code with caution; any secondary distribution version must remove the entrance accessible to China and fulfill the content review obligations, otherwise all legal consequences will be borne by the downstream.
+[English](#english) | [Korean](#korean)
 
+---
 
-This innovative tool transforms how you stay updated with arXiv papers by combining automated crawling with AI-powered summarization.
+## <a name="english"></a>English
 
+### 📖 Overview
 
-## ✨ Key Features
+This tool transforms how you stay updated with arXiv papers by combining automated crawling with AI-powered summarization. Built on GitHub Actions and Pages, it requires zero infrastructure and is completely free to use.
+
+https://github.com/user-attachments/assets/b25712a4-fb8d-484f-863d-e8da6922f9d7
+
+### ✨ Key Features
 
 🎯 **Zero Infrastructure Required**
 - Leverages GitHub Actions and Pages - no server needed
 - Completely free to deploy and use
 
 🤖 **Smart AI Summarization**
-- Daily paper crawling with DeepSeek-powered summaries
-- Cost-effective: Only ~0.2 CNY per day
+- Daily paper crawling with AI-powered summaries
+- Cost-effective: Only ~$0.03 USD per day (Deepseek)
+- Supports multiple LLM providers (OpenAI, DeepSeek, Groq, etc.)
 
 💫 **Smart Reading Experience**
 - Personalized paper highlighting based on your interests
 - Cross-device compatibility (desktop & mobile)
 - Local preference storage for privacy
 - Flexible date range filtering
+- Multi-language support (English, Chinese)
 
 👉 **[Try it now!](https://jonghwan-dev.github.io/Daily-ArXiv-Tool/)** - No installation required
 
+### 🚀 Quick Start
 
+#### Prerequisites
+- GitHub account
+- OpenAI API key (or compatible API like DeepSeek)
 
-https://github.com/user-attachments/assets/b25712a4-fb8d-484f-863d-e8da6922f9d7
+#### Setup Instructions
 
+1. **Fork this repository** to your own GitHub account
 
+2. **Configure Secrets** (Settings → Secrets and variables → Actions → Secrets)
+   - `OPENAI_API_KEY`: Your OpenAI-compatible API key
+   - `OPENAI_BASE_URL`: API base URL (e.g., `https://api.openai.com/v1`)
+   - `ACCESS_PASSWORD` (Optional): Set a password to protect your page
 
+3. **Configure Variables** (Settings → Secrets and variables → Actions → Variables)
+   - `CATEGORIES`: ArXiv categories to crawl (e.g., `"cs.CV, cs.CL, cs.AI"`)
+   - `LANGUAGE`: Summary language (`"English"` or `"Chinese"`)
+   - `MODEL_NAME`: LLM model to use (e.g., `"gpt-4o-mini"`, `"deepseek-chat"`)
+   - `EMAIL`: Your email for Git commits
+   - `NAME`: Your name for Git commits
 
-# How to use
-This repo will daily crawl arXiv papers about **cs.CV, cs.GR, cs.CL and cs.AI**, and use **DeepSeek** to summarize the papers in **Chinese**.
-If you wish to crawl other arXiv categories, use other LLMs, or other languages, please follow the instructions.
-Otherwise, you can directly use this repo in https://dw-dengwei.github.io/daily-arXiv-ai-enhanced/. Please star it if you like :)
+4. **Enable GitHub Actions**
+   - Go to Actions tab → Enable workflows
+   - Click "Run workflow" to test (takes ~30-60 minutes)
+   - By default, runs daily at 6:00 AM KST (21:00 UTC)
 
-**Instructions:**
-1. Fork this repo to your own account and delete my own information in [by-me-a-coffee](./buy-me-a-coffee/README.md).
-2. Go to: your-own-repo -> Settings -> Secrets and variables -> Actions
-3. Go to Secrets. Secrets are encrypted and used for sensitive data
-4. Create two repository secrets named `OPENAI_API_KEY` and `OPENAI_BASE_URL`, and input corresponding values.
-5. [Optional] Set a password in `secrets.ACCESS_PASSWORD` if you do not wish others to access your page. (see https://github.com/dw-dengwei/daily-arXiv-ai-enhanced/pull/64)
-6. Go to Variables. Variables are shown as plain text and are used for non-sensitive data
-7. Create the following repository variables:
-   1. `CATEGORIES`: separate the categories with ",", such as "cs.CL, cs.CV"
-   2. `LANGUAGE`: such as "Chinese" or "English"
-   3. `MODEL_NAME`: such as "deepseek-chat"
-   4. `EMAIL`: your email for push to GitHub
-   5. `NAME`: your name for push to GitHub
-8. Go to your-own-repo -> Actions -> arXiv-daily-ai-enhanced
-9. You can manually click **Run workflow** to test if it works well (it may take about one hour). By default, this action will automatically run every day. You can modify it in `.github/workflows/run.yml`
-10. Set up GitHub pages: Go to your own repo -> Settings -> Pages. In `Build and deployment`, set `Source="Deploy from a branch"`, `Branch="main", "/(root)"`. Wait for a few minutes, go to https://\<username\>.github.io/daily-arXiv-ai-enhanced/. Please see this [issue](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced/issues/14) for more precise instructions.
+5. **Enable GitHub Pages**
+   - Go to Settings → Pages
+   - Source: "Deploy from a branch"
+   - Branch: `main`, folder: `/(root)`
+   - Wait a few minutes, then visit: `https://<username>.github.io/Daily-ArXiv-Tool/`
 
-# Plans
-See https://github.com/users/dw-dengwei/projects/3
+### 📝 Configuration Details
 
-# Contributors
-Thanks to the following special contributors for contributing code, discovering bugs, and sharing useful ideas for this project!!!
+#### Supported ArXiv Categories
+- `cs.AI` - Artificial Intelligence
+- `cs.CL` - Computation and Language
+- `cs.CV` - Computer Vision
+- `cs.LG` - Machine Learning
+- `cs.RO` - Robotics
+- And many more... (see [arXiv categories](https://arxiv.org/category_taxonomy))
+
+#### Supported LLM Providers
+- OpenAI (GPT-4, GPT-3.5)
+- DeepSeek
+- Any OpenAI-compatible API
+
+#### Schedule Customization
+Edit `.github/workflows/run.yml` to change the crawling schedule:
+```yaml
+schedule:
+  - cron: "0 21 * * *"  # 6:00 AM KST (21:00 UTC previous day)
+```
+
+### 🛠️ Local Development
+
+Run `./run.sh` for local testing. Set environment variables:
+```bash
+export OPENAI_API_KEY="your-api-key"
+export OPENAI_BASE_URL="https://api.openai.com/v1"
+export LANGUAGE="English"
+export CATEGORIES="cs.CV, cs.CL"
+export MODEL_NAME="gpt-4o-mini"
+```
+
+### 📊 Project Structure
+
+```
+├── .github/workflows/run.yml  # GitHub Actions workflow
+├── daily_arxiv/               # Paper crawling scripts
+├── ai/                        # AI enhancement scripts
+├── to_md/                     # Markdown conversion
+├── js/                        # Frontend JavaScript
+├── css/                       # Stylesheets
+├── index.html                 # Main page
+├── statistic.html             # Statistics page
+└── settings.html              # Settings page
+```
+
+---
+
+## <a name="korean"></a>Korean
+
+### 📖 개요
+
+이 도구는 자동화된 크롤링과 AI 기반 요약을 결합하여 arXiv 논문을 최신 상태로 유지하는 방식을 혁신합니다.  
+GitHub Actions와 Pages를 기반으로 구축되어 인프라가 필요 없으며 완전히 무료로 사용할 수 있습니다.  
+
+### ✨ 주요 기능
+
+🎯 **인프라 불필요**
+- GitHub Actions와 Pages 활용 - 서버 불필요
+- 완전 무료 배포 및 사용
+
+🤖 **스마트 AI 요약**
+- AI 기반 요약을 통한 일일 논문 크롤링
+- 비용 효율적: 하루 약 40원 (Deep Seek 사용시)
+- 다양한 LLM 제공업체 지원 (OpenAI, DeepSeek, groq(무료) 등)
+
+💫 **스마트 읽기 경험**
+- 관심사 기반 맞춤형 논문 하이라이팅
+- 크로스 디바이스 호환성 (데스크톱 및 모바일)
+- 프라이버시를 위한 로컬 설정 저장
+- 유연한 날짜 범위 필터링
+- 다국어 지원 (영어, 중국어, 한국어)
+
+👉 **[지금 사용해보세요!](https://jonghwan-dev.github.io/Daily-ArXiv-Tool/)** - 설치 불필요
+
+### 🚀 빠른 시작
+
+#### 사전 요구사항
+- GitHub 계정
+- OpenAI API 키 (또는 DeepSeek 같은 호환 API)
+
+#### 설정 방법
+
+1. **이 저장소를 포크**하여 자신의 GitHub 계정으로 가져오기
+
+2. **Secrets 설정** (Settings → Secrets and variables → Actions → Secrets)
+   - `OPENAI_API_KEY`: OpenAI 호환 API 키
+   - `OPENAI_BASE_URL`: API 기본 URL (예: `https://api.openai.com/v1`)
+   - `ACCESS_PASSWORD` (선택사항): 페이지 보호를 위한 비밀번호 설정
+
+3. **Variables 설정** (Settings → Secrets and variables → Actions → Variables)
+   - `CATEGORIES`: 크롤링할 ArXiv 카테고리 (예: `"cs.CV, cs.CL, cs.AI"`)
+   - `LANGUAGE`: 요약 언어 (`"English"` 또는 `"Chinese"`)
+   - `MODEL_NAME`: 사용할 LLM 모델 (예: `"gpt-4o-mini"`, `"deepseek-chat"`)
+   - `EMAIL`: Git 커밋용 이메일
+   - `NAME`: Git 커밋용 이름
+
+4. **GitHub Actions 활성화**
+   - Actions 탭으로 이동 → 워크플로우 활성화
+   - "Run workflow" 클릭하여 테스트 (약 30-60분 소요)
+   - 기본적으로 매일 오전 6시(KST)에 실행됨
+
+5. **GitHub Pages 활성화**
+   - Settings → Pages로 이동
+   - Source: "Deploy from a branch"
+   - Branch: `main`, folder: `/(root)`
+   - 몇 분 기다린 후 방문: `https://<username>.github.io/Daily-ArXiv-Tool/`
+
+### 📝 설정 세부사항
+
+#### 지원되는 ArXiv 카테고리
+- `cs.AI` - 인공지능
+- `cs.CL` - 계산 및 언어
+- `cs.CV` - 컴퓨터 비전
+- `cs.LG` - 머신러닝
+- `cs.RO` - 로봇공학
+- 그 외 다수... ([arXiv 카테고리](https://arxiv.org/category_taxonomy) 참조)
+
+#### 지원되는 LLM 제공업체
+- OpenAI (GPT-4, GPT-3.5)
+- DeepSeek
+- OpenAI 호환 API
+
+#### 스케줄 커스터마이징
+`.github/workflows/run.yml` 파일을 편집하여 크롤링 스케줄 변경:
+```yaml
+schedule:
+  - cron: "0 21 * * *"  # 오전 6시 KST (전날 21:00 UTC)
+```
+
+### 🛠️ 로컬 개발
+
+로컬 테스트를 위해 `./run.sh` 실행. 환경 변수 설정:
+```bash
+export OPENAI_API_KEY="your-api-key"
+export OPENAI_BASE_URL="https://api.openai.com/v1"
+export LANGUAGE="English"
+export CATEGORIES="cs.CV, cs.CL"
+export MODEL_NAME="gpt-4o-mini"
+```
+
+### 📊 프로젝트 구조
+
+```
+├── .github/workflows/run.yml  # GitHub Actions 워크플로우
+├── daily_arxiv/               # 논문 크롤링 스크립트
+├── ai/                        # AI 향상 스크립트
+├── to_md/                     # Markdown 변환
+├── js/                        # 프론트엔드 JavaScript
+├── css/                       # 스타일시트
+├── index.html                 # 메인 페이지
+├── statistic.html             # 통계 페이지
+└── settings.html              # 설정 페이지
+```
+
+---
+
+## 📜 License
+
+Apache License(Modified) 2.0 - See [LICENSE](LICENSE) for details
+
+## 🙏 Original Project
+
+**Original Repository**: [dw-dengwei/daily-arXiv-ai-enhanced](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced)
+
+This is a modified version with the following changes:
+- Korean language support (commented out for future use)
+- English translations throughout
+- Schedule adjusted to 6 AM KST
+
+Planning : add slack bot
+
+## 👥 Original Repo's Contributors
+
+Thanks to the original project contributors for their amazing work:
 <table>
   <tbody>
     <tr>
