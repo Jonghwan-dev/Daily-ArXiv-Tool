@@ -8,7 +8,7 @@ name: arXiv-daily-ai-enhanced # actions workflow name
 
 on:
   schedule:
-    # Runs at 6:00 AM KST (21:00 UTC previous day) every day --Modified by Jonghwan Kim on 2026-01-30
+    # Runs at 21:00 UTC (6 AM KST) every day --Modified by Jonghwan Kim on 2026-01-30
     - cron: "0 21 * * *"
   workflow_dispatch:
 

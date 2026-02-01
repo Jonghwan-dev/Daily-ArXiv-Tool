@@ -29,7 +29,7 @@ template = open("template.txt", "r").read()
 system = open("system.txt", "r").read()
 
 def parse_args():
-    """解析命令行参数"""
+    """Parse command line arguments"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", type=str, required=True, help="jsonline data file")
     parser.add_argument("--max_workers", type=int, default=1, help="Maximum number of parallel workers")
@@ -38,8 +38,8 @@ def parse_args():
 def process_single_item(chain, item: Dict, language: str) -> Dict:
     def is_sensitive(content: str) -> bool:
         """
-        调用 spam.dw-dengwei.workers.dev 接口检测内容是否包含敏感词。
-        返回 True 表示触发敏感词，False 表示未触发。
+        Check if content contains sensitive words by calling the spam.dw-dengwei.workers.dev API.
+        Returns True if sensitive words are detected, False otherwise.
         """
         try:
             resp = requests.post(
@@ -49,10 +49,10 @@ def process_single_item(chain, item: Dict, language: str) -> Dict:
             )
             if resp.status_code == 200:
                 result = resp.json()
-                # 约定接口返回 {"sensitive": true/false, ...}
+                # Assume API returns {"sensitive": true/false, ...}
                 return result.get("sensitive", True)
             else:
-                # 如果接口异常，默认不触发敏感词
+                # If API call fails, default to not detecting sensitive words
                 print(f"Sensitive check failed with status {resp.status_code}", file=sys.stderr)
                 return True
         except Exception as e:
@@ -60,22 +60,22 @@ def process_single_item(chain, item: Dict, language: str) -> Dict:
             return True
 
     def check_github_code(content: str) -> Dict:
-        """提取并验证 GitHub 链接"""
+        """Extract and validate GitHub links"""
         code_info = {}
 
-        # 1. 优先匹配 github.com/owner/repo 格式
+        # 1. Prioritize matching github.com/owner/repo format
         github_pattern = r"https?://github\.com/([a-zA-Z0-9-_]+)/([a-zA-Z0-9-_\.]+)"
         match = re.search(github_pattern, content)
         
         if match:
             owner, repo = match.groups()
-            # 清理 repo 名称，去掉可能的 .git 后缀或末尾的标点
+            # Clean repository name: remove .git suffix and trailing punctuation
             repo = repo.rstrip(".git").rstrip(".,)")
             
             full_url = f"https://github.com/{owner}/{repo}"
             code_info["code_url"] = full_url
             
-            # 尝试调用 GitHub API 获取信息
+            # Attempt to call GitHub API to get information
             github_token = os.environ.get("TOKEN_GITHUB")
             headers = {"Accept": "application/vnd.github.v3+json"}
             if github_token:
@@ -89,33 +89,33 @@ def process_single_item(chain, item: Dict, language: str) -> Dict:
                     code_info["code_stars"] = data.get("stargazers_count", 0)
                     code_info["code_last_update"] = data.get("pushed_at", "")[:10]
             except Exception:
-                # API 调用失败不影响主流程
+                # API call failure does not affect the main flow
                 pass
             return code_info
 
-        # 2. 如果没有 github.com，尝试匹配 github.io
+        # 2. If no github.com match, attempt to match github.io
         github_io_pattern = r"https?://[a-zA-Z0-9-_]+\.github\.io(?:/[a-zA-Z0-9-_\.]+)*"
         match_io = re.search(github_io_pattern, content)
         
         if match_io:
             url = match_io.group(0)
-            # 清理末尾标点
+            # Clean up trailing punctuation
             url = url.rstrip(".,)")
             code_info["code_url"] = url
-            # github.io 不进行 star 和 update 判断
+            # github.io URLs do not have star/update information
                 
         return code_info
 
-    # 检查 summary 字段
+    # Check summary field
     if is_sensitive(item.get("summary", "")):
         return None
 
-    # 检测代码可用性
+    # Check code availability
     code_info = check_github_code(item.get("summary", ""))
     if code_info:
         item.update(code_info)
 
-    """处理单个数据项"""
+    """Process a single item"""
     # Default structure with meaningful fallback values
     default_ai_fields = {
         "tldr": "Summary generation failed",
@@ -127,7 +127,7 @@ def process_single_item(chain, item: Dict, language: str) -> Dict:
     
     try:
 # ==============================================    
-        time.sleep(10) # 10초 휴식 추가 -> RPM 제한
+        time.sleep(10) # Add 10-second delay -> RPM limit
 # ==============================================
         response: Structure = chain.invoke({
             "language": language,
@@ -135,17 +135,17 @@ def process_single_item(chain, item: Dict, language: str) -> Dict:
         })
         item['AI'] = response.model_dump()
     except langchain_core.exceptions.OutputParserException as e:
-        # 尝试从错误信息中提取 JSON 字符串并修复
+        # JSON string 
         error_msg = str(e)
         partial_data = {}
         
         if "Function Structure arguments:" in error_msg:
             try:
-                # 提取 JSON 字符串
+                # Extract JSON string
                 json_str = error_msg.split("Function Structure arguments:", 1)[1].strip().split('are not valid JSON')[0].strip()
-                # 预处理 LaTeX 数学符号 - 使用四个反斜杠来确保正确转义
+                # Preprocess LaTeX math symbols - use four backslashes to ensure correct escaping
                 json_str = json_str.replace('\\', '\\\\')
-                # 尝试解析修复后的 JSON
+                # Attempt to parse fixed JSON
                 partial_data = json.loads(json_str)
             except Exception as json_e:
                 print(f"Failed to parse JSON for {item.get('id', 'unknown')}: {json_e}", file=sys.stderr)
@@ -163,14 +163,14 @@ def process_single_item(chain, item: Dict, language: str) -> Dict:
         if field not in item['AI']:
             item['AI'][field] = default_ai_fields[field]
 
-    # 检查 AI 生成的所有字段
+    # Check all AI-generated fields
     for v in item.get("AI", {}).values():
         if is_sensitive(str(v)):
             return None
     return item
 
 def process_all_items(data: List[Dict], model_name: str, language: str, max_workers: int) -> List[Dict]:
-    """并行处理所有数据项"""
+    """Process all items in parallel"""
     llm = ChatOpenAI(model=model_name).with_structured_output(Structure, method="function_calling")
     print('Connect to:', model_name, file=sys.stderr)
     
@@ -181,16 +181,16 @@ def process_all_items(data: List[Dict], model_name: str, language: str, max_work
 
     chain = prompt_template | llm
     
-    # 使用线程池并行处理
-    processed_data = [None] * len(data)  # 预分配结果列表
+    # Use thread pool for parallel processing
+    processed_data = [None] * len(data)  # Preallocate result list
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # 提交所有任务
+        # Submit all tasks
         future_to_idx = {
             executor.submit(process_single_item, chain, item, language): idx
             for idx, item in enumerate(data)
         }
         
-        # 使用tqdm显示进度
+        # Use tqdm to show progress
         for future in tqdm(
             as_completed(future_to_idx),
             total=len(data),
@@ -215,23 +215,23 @@ def process_all_items(data: List[Dict], model_name: str, language: str, max_work
     return processed_data
 
 def main():
+    # Check and delete target file
     args = parse_args()
     model_name = os.environ.get("MODEL_NAME", 'deepseek-chat')
     language = os.environ.get("LANGUAGE", 'Chinese')
 
-    # 检查并删除目标文件
     target_file = args.data.replace('.jsonl', f'_AI_enhanced_{language}.jsonl')
     if os.path.exists(target_file):
         os.remove(target_file)
         print(f'Removed existing file: {target_file}', file=sys.stderr)
 
-    # 读取数据
+    # Read data
     data = []
     with open(args.data, "r") as f:
         for line in f:
             data.append(json.loads(line))
 
-    # 去重
+    # Deduplicate
     seen_ids = set()
     unique_data = []
     for item in data:
@@ -242,7 +242,7 @@ def main():
     data = unique_data
     print('Open:', args.data, file=sys.stderr)
     
-    # 并行处理所有数据
+    # Process all data in parallel
     processed_data = process_all_items(
         data,
         model_name,
@@ -250,7 +250,7 @@ def main():
         args.max_workers
     )
     
-    # 保存结果
+    # Save results
     with open(target_file, "w") as f:
         for item in processed_data:
             if item is not None:
