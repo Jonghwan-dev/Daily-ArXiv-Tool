@@ -1377,7 +1377,7 @@ function showPaperDetails(paper, paperIndex) {
 
   // Prompt from: https://papers.cool/
   prompt = `Read this paper ${paper.url.replace('abs', 'pdf')}, summarize the problems solved, related work, research methods, experiments and results, conclusion, and finally summarize the content of this paper.`
-  document.getElementById('kimiChatLink').href = `https://www.kimi.com/_prefill_chat?prefill_prompt=${prompt}&system_prompt=You are an academic assistant, the following conversation will revolve around the content of the following paper. Already through the link provided the PDF and existing FAQ of the paper. The user will continue to ask you questions about the paper, please answer professionally, do not appear in the first person, when涉及到分点回答时，鼓励你以markdown格式输出。&send_immediately=true&force_search=true`;
+  document.getElementById('GeminiLink').href = `https://gemini.google.com/app?text=You%20are%20an%20academic%20assistant.%20The%20conversation%20will%20revolve%20around%20the%20content%20of%20the%20paper.%20Answer%20professionally%20in%20the%20third%20person%20and%20use%20Markdown.%0A%0A${prompt}`;
   
   // Update paper position information
   const paperPosition = document.getElementById('paperPosition');

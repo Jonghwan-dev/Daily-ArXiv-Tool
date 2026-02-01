@@ -1,9 +1,9 @@
 /* Base styles - Clean, eye-friendly color scheme */
 :root {
   --primary-color: #80ebbb;
-  --secondary-color: #a3cfbb;
+  --secondary-color: #b9fedf;
   --accent-color: #75b798;
-  --gradient-primary: linear-gradient(135deg, #cbe7da 0%, #a3cfbb 100%);
+  --gradient-primary: linear-gradient(135deg, #aff6d5 0%, #a3cfbb 100%);
   --gradient-light: linear-gradient(135deg, #f8f9fa 0%, #f9f9f9 100%);
   --background-color: #f8f9fa;
   --card-bg-color: #ffffff;
