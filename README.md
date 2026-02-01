@@ -1,4 +1,4 @@
-# 🚀 Daily arXiv AI Enhanced
+# 🌿 Solid Matcha (Daily-ArXiv-Tool)
 
 > **Original Project**: [dw-dengwei/daily-arXiv-ai-enhanced](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced)  
 > **Modified by**: Jonghwan Kim (2026-01-30) / **Affiliation**: National Cancer Center, Korea
